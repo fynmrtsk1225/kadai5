@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <h1>ゴーヤ情報</h1>
+
+    <% require "pg" %>
+
+    <% connection = PG::connect(dbname: "goya") %>
+    <% connection.internal_encoding = "UTF-8" %>
+
+    <form action='indicate.cgi' method='POST'>
+      下記に文字を入力してください<br><br>
+      <input type="text"  name='input' ><br>
+      <input type="submit" name="送信" >
+    </form>
+
+    <% result1 = connection.exec("select weight, give_for from crops;") %>
+    <% data1 = [] %>
+
+    <% result1.each do |record1| %>
+    <% data1 << "重さ：#{record1["weight"]}　売った相手：#{record1["give_for"]}" %>
+    <% end %>
+
+    <form action="goya.cgi" method="POST">
+      下記のボタンを押すと、ゴーヤの大きさと売った相手の情報ページに飛びます<br><br>
+      <input type="text" name="goya" value="<%= data1.join(" <br> ") %>">
+      <input type="submit" name="送信" >
+    </form>
+
+    <% result2 = connection.exec("SELECT * FROM crops WHERE NOT (give_for = '自家消費');") %>
+    <% data2 = [] %>
+
+    <% result2.each do |record2|%>
+    <% data2 << "売った相手：#{record2["give_for"]}　日付：#{record2["date"]}　重さ：#{record2["weight"]}　長さ：#{record2["length"]}　品質：#{record2["quality"]}" %>
+    <%end%>
+
+    <form action="transferee.cgi" method="POST">
+    下記のボタンを押すと、自家消費以外のゴーヤ情報が表示されます<br><br>
+    <input type="text" name="transferee" value="<%= data2.join(" <br> ") %>">
+    <input type="submit" name="送信">
+    </form>
+
+
+    <% result3 = connection.exec("SELECT * FROM crops WHERE NOT (give_for = '自家消費');") %>
+    <% data3 = [] %>
+
+    <% result3.each do |record3|%>
+    <% data3 << "売った相手：#{record3["give_for"]}　日付：#{record3["date"]}　重さ：#{record3["weight"]}　長さ：#{record3["length"]}　品質：#{record3["quality"]}" %>
+    <%end%>
+
+    <form action="false.cgi" method="POST">
+    下記のボタンを押すと、低品質(false)のゴーヤ情報が表示されます<br><br>
+    <input type="text" name="false" value="<%= data3.join(" <br> ") %>">
+    <input type="submit" name="送信">
+    </form>
+
+  </body>
+</html>
